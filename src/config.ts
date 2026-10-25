@@ -14,7 +14,11 @@ export const HERO_VIDEO_SRC =
  * GLB/GLTF for the selected project. An empty string disables asset loading
  * and the viewer falls back to the clearly labeled procedural sample scene.
  */
-export const SAMPLE_MODEL_URL = "/models/sample-scene.glb";
+export const SAMPLE_MODEL_URL = "";
+export const API_BASE_URL =
+  typeof window !== "undefined"
+    ? (window as unknown as { __VITE_API_BASE_URL?: string }).__VITE_API_BASE_URL || "http://localhost:8001"
+    : "http://localhost:8001";
 
 /** Accepted source video formats. */
 export const ACCEPTED_VIDEO_EXTENSIONS = ["mp4", "mov", "webm"] as const;

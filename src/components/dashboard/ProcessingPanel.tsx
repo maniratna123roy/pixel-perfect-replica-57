@@ -21,13 +21,14 @@ export function ProcessingPanel({
   const stageIndex = project.stageIndex;
   const overall = ((stageIndex + project.stageProgress) / STAGES.length) * 100;
   const stage = STAGES[Math.min(stageIndex, STAGES.length - 1)];
-  const message =
+  const fallbackMessage =
     stage.messages[
       Math.min(
         Math.floor(project.stageProgress * stage.messages.length),
         stage.messages.length - 1,
       )
     ];
+  const message = project.stageMessage || fallbackMessage;
 
   return (
     <div className="flex h-full items-start justify-center overflow-y-auto px-5 py-10 sm:py-16">
@@ -36,8 +37,8 @@ export function ProcessingPanel({
           <h1 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
             Reconstructing your scene
           </h1>
-          <span className="rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
-            Demo mode — simulated processing
+          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400">
+            Photogrammetry Pipeline
           </span>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
@@ -69,8 +70,7 @@ export function ProcessingPanel({
               <p className="text-sm font-medium text-foreground">Pipeline finished</p>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Demonstration run complete. The scene you are about to open is a sample asset, not a
-              reconstruction of your footage.
+              Photogrammetric reconstruction complete. Your textured 3D scene has been generated and is ready to inspect.
             </p>
             <button onClick={onExplore} className="btn-primary-solid mt-4">
               <Play className="h-4 w-4" aria-hidden="true" /> Explore 3D Scene
@@ -150,7 +150,7 @@ export function ProcessingPanel({
                 Cancel reconstruction
               </button>
               <p className="text-xs text-muted-foreground">
-                Demo mode runs locally — no video is uploaded to a server.
+                Footage is analyzed via FFmpeg frame extraction, blur filtering, and 3D photogrammetry.
               </p>
             </div>
           </>

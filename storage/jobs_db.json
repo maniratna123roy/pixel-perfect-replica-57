@@ -1,0 +1,125 @@
+{
+  "job_9ba1cc12": {
+    "job_id": "job_9ba1cc12",
+    "capture_id": "cap_2242a7ad",
+    "filename": "Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "video_path": "C:\\Users\\Maniratna Roy\\Documents\\hackyard\\pixel-perfect-replica-57\\storage\\uploads\\cap_2242a7ad_Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "status": "succeeded",
+    "progress": 1.0,
+    "current_stage": "S8_PUBLISH",
+    "stages": [],
+    "artifacts": {
+      "model_url": "/models/sample-scene.glb",
+      "frames_count": 74,
+      "keyframes_dir": "/artifacts/job_9ba1cc12/selected",
+      "provider": "PolycamProvider"
+    },
+    "error": null
+  },
+  "job_645e2084": {
+    "job_id": "job_645e2084",
+    "capture_id": "cap_991bf8e6",
+    "filename": "Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "video_path": "C:\\Users\\Maniratna Roy\\Documents\\hackyard\\pixel-perfect-replica-57\\storage\\uploads\\cap_991bf8e6_Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "method": "auto",
+    "status": "failed",
+    "progress": 0.45,
+    "current_stage": "FAILED",
+    "stage_message": "Pipeline error: 'str' object has no attribute 'name'",
+    "stages": [],
+    "artifacts": {},
+    "error": "'str' object has no attribute 'name'"
+  },
+  "job_299bbbfc": {
+    "job_id": "job_299bbbfc",
+    "capture_id": "cap_42b069ab",
+    "filename": "Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "video_path": "C:\\Users\\Maniratna Roy\\Documents\\hackyard\\pixel-perfect-replica-57\\storage\\uploads\\cap_42b069ab_Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "method": "auto",
+    "status": "failed",
+    "progress": 0.45,
+    "current_stage": "FAILED",
+    "stage_message": "Pipeline error: 'str' object has no attribute 'name'",
+    "stages": [],
+    "artifacts": {},
+    "error": "'str' object has no attribute 'name'"
+  },
+  "job_625bb807": {
+    "job_id": "job_625bb807",
+    "capture_id": "cap_144c7b1b",
+    "filename": "Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "video_path": "C:\\Users\\Maniratna Roy\\Documents\\hackyard\\pixel-perfect-replica-57\\storage\\uploads\\cap_144c7b1b_Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "method": "auto",
+    "status": "succeeded",
+    "progress": 1.0,
+    "current_stage": "S8_PUBLISH",
+    "stage_message": "3D reconstruction complete! Textured scene ready to explore.",
+    "stages": [],
+    "artifacts": {
+      "status": "ok",
+      "model_url": "/artifacts/job_625bb807/reconstruction/reconstruction.glb",
+      "obj_zip_url": "/artifacts/job_625bb807/reconstruction/textured_model.zip",
+      "orthophoto_url": "/artifacts/job_625bb807/reconstruction/orthophoto.png",
+      "report_url": "/artifacts/job_625bb807/reconstruction/report.json",
+      "metrics": {
+        "num_images": 55,
+        "mesh_vertices": 80738,
+        "mesh_faces": 122204,
+        "glb_size_mb": 8.63
+      }
+    },
+    "error": null
+  },
+  "job_c3f2bd0d": {
+    "job_id": "job_c3f2bd0d",
+    "capture_id": "cap_1b2eb0a1",
+    "filename": "Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "video_path": "C:\\Users\\Maniratna Roy\\Documents\\hackyard\\pixel-perfect-replica-57\\storage\\uploads\\cap_1b2eb0a1_Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "method": "auto",
+    "status": "succeeded",
+    "progress": 1.0,
+    "current_stage": "S8_PUBLISH",
+    "stage_message": "3D reconstruction complete! Textured scene ready to explore.",
+    "stages": [],
+    "artifacts": {
+      "status": "ok",
+      "model_url": "/artifacts/job_625bb807/reconstruction/reconstruction.glb",
+      "obj_zip_url": "/artifacts/job_625bb807/reconstruction/textured_model.zip",
+      "orthophoto_url": "/artifacts/job_625bb807/reconstruction/orthophoto.png",
+      "report_url": "/artifacts/job_625bb807/reconstruction/report.json",
+      "metrics": {
+        "num_images": 55,
+        "mesh_vertices": 80738,
+        "mesh_faces": 122204,
+        "glb_size_mb": 8.63
+      }
+    },
+    "error": null
+  },
+  "job_a4dc2d5a": {
+    "job_id": "job_a4dc2d5a",
+    "capture_id": "cap_f33c5dcf",
+    "filename": "Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "video_path": "C:\\Users\\Maniratna Roy\\Documents\\hackyard\\pixel-perfect-replica-57\\storage\\uploads\\cap_f33c5dcf_Free Stock Footage - Highrise Building close up Drone DJI Air2S - Free Stock Footage (720p, h264).mp4",
+    "method": "auto",
+    "status": "succeeded",
+    "progress": 1.0,
+    "current_stage": "S8_PUBLISH",
+    "stage_message": "3D reconstruction complete! Textured scene ready to explore.",
+    "stages": [],
+    "artifacts": {
+      "status": "ok",
+      "model_url": "/artifacts/job_625bb807/reconstruction/reconstruction.glb",
+      "obj_zip_url": "/artifacts/job_625bb807/reconstruction/textured_model.zip",
+      "orthophoto_url": "/artifacts/job_625bb807/reconstruction/orthophoto.png",
+      "report_url": "/artifacts/job_625bb807/reconstruction/report.json",
+      "metrics": {
+        "num_images": 55,
+        "mesh_vertices": 80738,
+        "mesh_faces": 122204,
+        "glb_size_mb": 8.63
+      }
+    },
+    "error": null
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "job_id": "job_625bb807",
+  "task_uuid": "4df7192e-86b4-420b-bcbd-a4ccbbcb98d2",
+  "provider": "NodeODM",
+  "num_images": 55,
+  "processing_time_sec": 3,
+  "mesh_vertices": 80738,
+  "mesh_faces": 122204,
+  "glb_size_mb": 8.63,
+  "has_orthophoto": true,
+  "options": [
+    {
+      "name": "feature-quality",
+      "value": "medium"
+    },
+    {
+      "name": "mesh-size",
+      "value": 100000
+    },
+    {
+      "name": "pc-quality",
+      "value": "medium"
+    },
+    {
+      "name": "auto-boundary",
+      "value": true
+    },
+    {
+      "name": "dsm",
+      "value": true
+    },
+    {
+      "name": "dtm",
+      "value": false
+    }
+  ]
+}

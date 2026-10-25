@@ -13,6 +13,7 @@ import {
   STAGES,
   type Project,
 } from "@/lib/demo-projects";
+import { API_BASE_URL } from "@/config";
 import {
   loadViewerSettings,
   saveViewerSettings,
@@ -85,41 +86,39 @@ export function DashboardShell() {
     saveProjects(next);
   }, []);
 
-  const generateScene = useCallback(() => {
+  const generateScene = useCallback(async () => {
     const src = source;
     if (!src) return;
     const existingId = activeIdRef.current;
     const existing = projectsRef.current.find((p) => p.id === existingId);
 
+    const name = src.meta.name.replace(/\.[^.]+$/, "") || "Untitled scene";
+    let activeProj: Project;
+
     if (existing && existing.status === "draft") {
-      persist(
-        projectsRef.current.map((p) =>
-          p.id === existing.id
-            ? {
-                ...p,
-                status: "processing",
-                fileName: src.meta.name,
-                fileSize: src.meta.size,
-                fileDuration: src.meta.duration,
-                stageIndex: 0,
-                stageProgress: 0,
-                error: null,
-                updatedAt: Date.now(),
-              }
-            : p,
-        ),
-      );
+      activeProj = {
+        ...existing,
+        status: "processing",
+        fileName: src.meta.name,
+        fileSize: src.meta.size,
+        fileDuration: src.meta.duration,
+        stageIndex: 0,
+        stageProgress: 0,
+        error: null,
+        updatedAt: Date.now(),
+      };
+      persist(projectsRef.current.map((p) => (p.id === existing.id ? activeProj : p)));
     } else {
-      const name = src.meta.name.replace(/\.[^.]+$/, "") || "Untitled scene";
-      const project = createProject({
+      activeProj = createProject({
         name,
         fileName: src.meta.name,
         fileSize: src.meta.size,
         fileDuration: src.meta.duration,
       });
-      persist([...projectsRef.current, project]);
-      setActiveProjectId(project.id);
+      persist([...projectsRef.current, activeProj]);
+      setActiveProjectId(activeProj.id);
     }
+
     lastSavedStageRef.current = -1;
     setExploreGate(false);
     setSelection(null);
@@ -127,15 +126,66 @@ export function DashboardShell() {
     setRunKey((k) => k + 1);
     setView("project");
     setWorkspace("processing");
+
+    // Submit video file to FastAPI backend (/v1/captures/init -> /v1/captures/{id}/upload)
+    try {
+      const initFormData = new FormData();
+      initFormData.append("filename", src.file.name);
+      const initRes = await fetch(`${API_BASE_URL}/v1/captures/init`, {
+        method: "POST",
+        body: initFormData,
+      });
+      if (!initRes.ok) throw new Error("Failed to initialize capture session on backend");
+      const initData = await initRes.json();
+      const captureId = initData.capture_id;
+
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", src.file);
+      const uploadRes = await fetch(`${API_BASE_URL}/v1/captures/${captureId}/upload`, {
+        method: "POST",
+        body: uploadFormData,
+      });
+      if (!uploadRes.ok) throw new Error("Failed to upload capture file to backend");
+      const uploadData = await uploadRes.json();
+      const jobId = uploadData.job_id;
+
+      // Attach backend jobId to project
+      persist(
+        projectsRef.current.map((p) =>
+          p.id === activeProj.id ? { ...p, jobId } : p,
+        ),
+      );
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to upload video to backend";
+      console.error("Backend upload failed:", err);
+      persist(
+        projectsRef.current.map((p) =>
+          p.id === activeProj.id
+            ? {
+                ...p,
+                status: "failed",
+                error: `${errorMsg}. Ensure backend server is running at ${API_BASE_URL}.`,
+                updatedAt: Date.now(),
+              }
+            : p,
+        ),
+      );
+    }
   }, [source, persist]);
 
   const handleProcessingUpdate = useCallback(
-    (stage: number, progress: number) => {
+    (stage: number, progress: number, message?: string) => {
       const id = activeIdRef.current;
       if (!id) return;
       const next = projectsRef.current.map((p) =>
         p.id === id
-          ? { ...p, stageIndex: stage, stageProgress: progress, updatedAt: Date.now() }
+          ? {
+              ...p,
+              stageIndex: stage,
+              stageProgress: progress,
+              ...(message ? { stageMessage: message } : {}),
+              updatedAt: Date.now(),
+            }
           : p,
       );
       setProjects(next);
@@ -239,34 +289,86 @@ export function DashboardShell() {
     });
   }, []);
 
-  // Simulated reconstruction pipeline (demo mode). Runs in the shell so the
-  // pipeline keeps moving even if the user navigates between views.
+  // Real reconstruction pipeline polling connected to FastAPI backend
   const activeStatus = activeProject?.status ?? null;
+  const activeJobId = activeProject?.jobId ?? null;
   useEffect(() => {
     if (activeStatus !== "processing") return;
     let cancelled = false;
-    let stage = 0;
-    let progress = 0;
-    const tick = () => {
-      if (cancelled) return;
-      progress += 0.2 / STAGES[stage].duration;
-      if (progress >= 1) {
-        stage += 1;
-        progress = 0;
-        if (stage >= STAGES.length) {
-          window.clearInterval(id);
-          handleProcessingComplete();
-          return;
+
+    // If active job has a backend jobId, poll real backend status
+    if (activeJobId) {
+      const pollBackend = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/v1/jobs/${activeJobId}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (cancelled) return;
+
+          const stageMap: Record<string, number> = {
+            QUEUED: 0,
+            S0_INGEST: 0,
+            S1_EXTRACT: 1,
+            S2_SELECT: 2,
+            S3_POSES: 3,
+            S5_RECONSTRUCT: 4,
+            S5_RECONSTRUCT_ODM: 4,
+            S8_PUBLISH: 5,
+          };
+          const stageIdx = stageMap[data.current_stage] ?? 0;
+          handleProcessingUpdate(stageIdx, data.progress, data.stage_message);
+
+          if (data.status === "failed") {
+            const id = activeIdRef.current;
+            if (id) {
+              const next = projectsRef.current.map((p) =>
+                p.id === id
+                  ? {
+                      ...p,
+                      status: "failed" as const,
+                      error: data.error || data.stage_message || "Reconstruction failed",
+                      updatedAt: Date.now(),
+                    }
+                  : p,
+              );
+              persist(next);
+            }
+            return;
+          }
+
+          if (data.status === "succeeded") {
+            const modelUrl = data.artifacts?.model_url;
+            const id = activeIdRef.current;
+            if (id) {
+              const next = projectsRef.current.map((p) =>
+                p.id === id
+                  ? {
+                      ...p,
+                      status: "ready" as const,
+                      stageIndex: STAGES.length - 1,
+                      stageProgress: 1,
+                      modelUrl: modelUrl || p.modelUrl,
+                      updatedAt: Date.now(),
+                    }
+                  : p,
+              );
+              persist(next);
+              setExploreGate(true);
+            }
+            return;
+          }
+        } catch (e) {
+          console.warn("Backend poll error:", e);
         }
-      }
-      handleProcessingUpdate(stage, progress);
-    };
-    const id = window.setInterval(tick, 200);
-    return () => {
-      cancelled = true;
-      window.clearInterval(id);
-    };
-  }, [activeProjectId, activeStatus, runKey, handleProcessingUpdate, handleProcessingComplete]);
+      };
+
+      const pollInterval = window.setInterval(pollBackend, 1000);
+      return () => {
+        cancelled = true;
+        window.clearInterval(pollInterval);
+      };
+    }
+  }, [activeProjectId, activeStatus, activeJobId, runKey, handleProcessingUpdate, handleProcessingComplete, persist]);
 
   const viewerProjectName = activeProject?.name ?? "Untitled scene";
 
@@ -317,6 +419,7 @@ export function DashboardShell() {
         <Suspense fallback={<div className="min-h-full bg-viewport" />}>
           <SceneViewer
             projectName={viewerProjectName}
+            modelUrl={activeProject?.modelUrl}
             settings={settings}
             onSettingsChange={updateSettings}
             onStats={setModelStats}

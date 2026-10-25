@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  nodeodm:
+    image: opendronemap/nodeodm:latest
+    container_name: birdseye-nodeodm
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - WEB_MAX_MEMORY=12000
+    volumes:
+      - nodeodm_data:/var/www/data
+
+volumes:
+  nodeodm_data:

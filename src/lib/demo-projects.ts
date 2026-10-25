@@ -22,6 +22,9 @@ export interface Project {
   /** Progress within the current stage, 0..1. */
   stageProgress: number;
   error: string | null;
+  jobId?: string | null;
+  modelUrl?: string | null;
+  stageMessage?: string | null;
 }
 
 export interface PipelineStage {

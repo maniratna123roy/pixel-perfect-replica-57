@@ -19,7 +19,7 @@ import {
   useProgress,
 } from "@react-three/drei";
 import * as THREE from "three";
-import { clone as skeletonClone, type OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import {
   Axis3d,
   Camera as CameraIcon,
@@ -33,7 +33,7 @@ import {
   Scan,
   ZoomIn,
 } from "lucide-react";
-import { SAMPLE_MODEL_URL } from "@/config";
+import { API_BASE_URL, SAMPLE_MODEL_URL } from "@/config";
 import type {
   ModelStats,
   SceneBounds,
@@ -51,6 +51,7 @@ const MODE_LABEL: Record<ViewerMode, string> = {
 
 interface SceneViewerProps {
   projectName: string;
+  modelUrl?: string | null;
   settings: ViewerSettings;
   onSettingsChange: (partial: Partial<ViewerSettings>) => void;
   onStats: (stats: ModelStats | null) => void;
@@ -60,6 +61,7 @@ interface SceneViewerProps {
 
 export function SceneViewer({
   projectName,
+  modelUrl,
   settings,
   onSettingsChange,
   onStats,
@@ -77,6 +79,12 @@ export function SceneViewer({
   const [bounds, setBounds] = useState<SceneBounds | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [assetFailed, setAssetFailed] = useState(false);
+
+  const activeModelUrl = modelUrl
+    ? modelUrl.startsWith("http")
+      ? modelUrl
+      : `${API_BASE_URL}${modelUrl}`
+    : SAMPLE_MODEL_URL;
 
   const handleReady = useCallback(
     (b: SceneBounds, stats: ModelStats) => {
@@ -130,7 +138,7 @@ export function SceneViewer({
   };
 
   const usingSample =
-    assetFailed || (bounds !== null && glSampleUsed(bounds)) || SAMPLE_MODEL_URL === "";
+    assetFailed || (bounds !== null && glSampleUsed(bounds)) || activeModelUrl === "";
 
   return (
     <div ref={containerRef} className="relative h-full w-full bg-viewport">
@@ -170,14 +178,30 @@ export function SceneViewer({
         />
         <CameraRig request={viewRequest} bounds={bounds} controlsRef={controlsRef} />
 
-        {SAMPLE_MODEL_URL !== "" && !assetFailed ? (
+        {activeModelUrl && !assetFailed ? (
           <Suspense fallback={<LoaderOverlay />}>
             <GLTFBoundary onFallback={() => setAssetFailed(true)}>
-              <SampleModel onReady={handleReady} onSelect={handleSelect} />
+              <SampleModel url={activeModelUrl} onReady={handleReady} onSelect={handleSelect} />
             </GLTFBoundary>
           </Suspense>
+        ) : !activeModelUrl ? (
+          <Html center>
+            <div className="glass-strong pointer-events-none max-w-sm rounded-xl p-5 text-center">
+              <p className="text-sm font-medium text-foreground">No Reconstructed 3D Scene Loaded</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Upload a drone video in the Upload tab to generate an interactive 3D model.
+              </p>
+            </div>
+          </Html>
         ) : (
-          <ProceduralSample onReady={handleReady} onSelect={handleSelect} />
+          <Html center>
+            <div className="glass-strong pointer-events-none max-w-sm rounded-xl border border-destructive/40 p-5 text-center">
+              <p className="text-sm font-medium text-destructive">Failed to Load Model Asset</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The reconstructed model file could not be loaded. Ensure the backend server is running.
+              </p>
+            </div>
+          </Html>
         )}
 
         {settings.showGrid && (
@@ -279,13 +303,6 @@ export function SceneViewer({
             <Axis3d className="h-4 w-4" />
           </IconButton>
         </div>
-
-        {/* Sample-scene disclosure */}
-        {usingSample && (
-          <p className="glass pointer-events-none absolute bottom-3 left-3 hidden rounded-lg px-3 py-2 text-[11px] text-muted-foreground sm:bottom-4 sm:left-4 lg:block">
-            Sample scene — demonstration geometry, not a reconstruction of your footage.
-          </p>
-        )}
       </div>
     </div>
   );
@@ -396,17 +413,19 @@ function useSelectionHighlight() {
 }
 
 function SampleModel({
+  url,
   onReady,
   onSelect,
 }: {
+  url: string;
   onReady: (bounds: SceneBounds, stats: ModelStats) => void;
   onSelect: (name: string | null) => void;
 }) {
-  const { scene } = useGLTF(SAMPLE_MODEL_URL);
+  const { scene } = useGLTF(url);
   const highlight = useSelectionHighlight();
 
   const object = useMemo(() => {
-    const clone = skeletonClone(scene);
+    const clone = scene.clone(true);
     const box = new THREE.Box3().setFromObject(clone);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
